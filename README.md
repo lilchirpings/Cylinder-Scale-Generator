@@ -3,7 +3,7 @@
 
 A web-based tool for creating precise measurement scales that wrap around cylindrical objects.
 
-[🚀 **Cylinder-Scale-Generator**](https://lilchirpings.github.io/cylinder-scale-generator/)
+[**Cylinder-Scale-Generator**](https://lilchirpings.github.io/cylinder-scale-generator/)
 
 ## Features
 
