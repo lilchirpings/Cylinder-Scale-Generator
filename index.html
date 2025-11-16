@@ -51,6 +51,45 @@
             background: #f5f5f5;
             border-bottom: 1px solid #ccc;
             overflow-x: auto;
+            position: relative;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Hide scrollbar but keep functionality */
+        .tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .tabs::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .tabs::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 2px;
+        }
+        
+        /* Gradient indicators for more content */
+        .tabs::before,
+        .tabs::after {
+            content: '';
+            position: sticky;
+            top: 0;
+            width: 30px;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .tabs::before {
+            left: 0;
+            background: linear-gradient(to right, #f5f5f5, transparent);
+        }
+        
+        .tabs::after {
+            right: 0;
+            background: linear-gradient(to left, #f5f5f5, transparent);
         }
 
         .tab {
@@ -140,6 +179,15 @@
             width: 18px;
             height: 18px;
             cursor: pointer;
+        }
+
+        .field input[type="color"] {
+            width: 60px;
+            height: 35px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px;
         }
 
         .checkbox-label {
@@ -253,6 +301,40 @@
             .btn {
                 width: 100%;
             }
+            
+            .tabs {
+                padding-bottom: 4px;
+                /* Show a bit of the next tab */
+                padding-left: 10px;
+                padding-right: 30px;
+                /* Add visual hint that tabs are scrollable */
+                box-shadow: inset -15px 0 15px -15px rgba(0,0,0,0.3);
+            }
+            
+            .tab {
+                padding: 12px 20px;
+                font-size: 0.95em;
+                min-width: auto;
+                flex-shrink: 0;
+            }
+            
+            /* Add "swipe" hint on first load */
+            .tabs::after {
+                content: '→';
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #999;
+                font-size: 1.2em;
+                animation: swipeHint 2s ease-in-out infinite;
+                pointer-events: none;
+            }
+            
+            @keyframes swipeHint {
+                0%, 100% { opacity: 0.3; transform: translateY(-50%) translateX(0); }
+                50% { opacity: 1; transform: translateY(-50%) translateX(5px); }
+            }
         }
     </style>
 </head>
@@ -269,6 +351,10 @@
             <button class="tab" onclick="switchTab('secondary')">Plot Data</button>
             <button class="tab" onclick="switchTab('appearance')">Appearance</button>
         </div>
+        
+        <div class="mobile-scroll-hint" style="display: none; text-align: center; padding: 8px; background: #fff3cd; color: #856404; font-size: 0.85em; border-bottom: 1px solid #ffeaa7;">
+            ← Swipe tabs horizontally for more options →
+        </div>
 
         <div id="basic" class="tab-content active">
             <div class="form-group">
@@ -279,7 +365,7 @@
                 </div>
                 <div class="field">
                     <label>Tape Thickness (inches):</label>
-                    <input type="number" id="tape_thickness_inches" step="0.001" value="0.005">
+                    <input type="number" id="tape_thickness_inches" step="0.001" value="0.0095">
                 </div>
                 <div class="field">
                     <label>Max Label Height (inches):</label>
@@ -295,15 +381,15 @@
                 </div>
                 <div class="field">
                     <label>Click Length (inches):</label>
-                    <input type="number" id="click_length_inches" step="0.01" value="0.25">
+                    <input type="number" id="click_length_inches" step="0.01" value="0.05">
                 </div>
                 <div class="field">
                     <label>Click Width (inches):</label>
-                    <input type="number" id="click_width_inches" step="0.01" value="0.02">
+                    <input type="number" id="click_width_inches" step="0.01" value="0.01">
                 </div>
                 <div class="field">
                     <label>Scale Line Width (inches):</label>
-                    <input type="number" id="scale_line_width_inches" step="0.01" value="0.03">
+                    <input type="number" id="scale_line_width_inches" step="0.01" value="0.01">
                 </div>
             </div>
 
@@ -325,15 +411,15 @@
                 </div>
                 <div class="field">
                     <label>Medium Click Start:</label>
-                    <input type="number" id="medium_click_start" value="2">
+                    <input type="number" id="medium_click_start" value="1">
                 </div>
                 <div class="field">
                     <label>Medium Extra Length (inches):</label>
-                    <input type="number" id="medium_click_extra_length_inches" step="0.01" value="0.15">
+                    <input type="number" id="medium_click_extra_length_inches" step="0.01" value="0.05">
                 </div>
                 <div class="field">
                     <label>Medium Click Width (inches):</label>
-                    <input type="number" id="medium_click_width_inches" step="0.001" value="0.02">
+                    <input type="number" id="medium_click_width_inches" step="0.001" value="0.015">
                 </div>
             </div>
 
@@ -352,11 +438,11 @@
                 </div>
                 <div class="field">
                     <label>Long Extra Length (inches):</label>
-                    <input type="number" id="long_click_extra_length_inches" step="0.01" value="0.12">
+                    <input type="number" id="long_click_extra_length_inches" step="0.01" value="0.06">
                 </div>
                 <div class="field">
                     <label>Long Click Width (inches):</label>
-                    <input type="number" id="long_click_width_inches" step="0.001" value="0.025">
+                    <input type="number" id="long_click_width_inches" step="0.001" value="0.02">
                 </div>
             </div>
 
@@ -370,7 +456,7 @@
                 </div>
                 <div class="field">
                     <label>Number Gap from Click (inches):</label>
-                    <input type="number" id="click_number_gap_inches" step="0.01" value="0.03">
+                    <input type="number" id="click_number_gap_inches" step="0.01" value="0">
                 </div>
                 <div class="field">
                     <label>Font Size Override (%):</label>
@@ -378,7 +464,7 @@
                 </div>
                 <div class="field">
                     <label>Click Height Multiplier (%):</label>
-                    <input type="number" id="click_height_multiplier_percent" value="30">
+                    <input type="number" id="click_height_multiplier_percent" value="100">
                 </div>
             </div>
         </div>
@@ -553,6 +639,33 @@
             </div>
 
             <div class="form-group">
+                <h3>Row Colors (Light Mode Only)</h3>
+                <div style="margin-bottom: 15px; padding: 10px; background: #e8f4f8; border-left: 3px solid #4a90e2; color: #555; font-size: 0.9em;">
+                    These colors apply to plotted data rows when Dark Mode is OFF. In Dark Mode, all rows use white.
+                </div>
+                <div class="field">
+                    <label>Row 0 Color:</label>
+                    <input type="color" id="row0_color" value="#1a1a1a">
+                </div>
+                <div class="field">
+                    <label>Row 1 Color:</label>
+                    <input type="color" id="row1_color" value="#8b0000">
+                </div>
+                <div class="field">
+                    <label>Row 2 Color:</label>
+                    <input type="color" id="row2_color" value="#2f4f4f">
+                </div>
+                <div class="field">
+                    <label>Row 3 Color:</label>
+                    <input type="color" id="row3_color" value="#4a4a4a">
+                </div>
+                <div class="field">
+                    <label>Row 4 Color:</label>
+                    <input type="color" id="row4_color" value="#8b4513">
+                </div>
+            </div>
+
+            <div class="form-group">
                 <h3>Trim Marks</h3>
                 <div class="field">
                     <label class="checkbox-label">
@@ -584,7 +697,7 @@
                 </div>
                 <div class="field">
                     <label>Title Text:</label>
-                    <input type="text" id="title_text" value="Cylinder Scale">
+                    <input type="text" id="title_text" value="Wildcat, H&N Baracuda 21.1gr, 835fps zero @ 50yrds">
                 </div>
                 <div class="field">
                     <label>Title Font Size:</label>
@@ -596,7 +709,7 @@
                 </div>
                 <div class="field">
                     <label>Title to Trim Gap (inches):</label>
-                    <input type="number" id="title_to_trim_gap_inches" step="0.01" value="0.02">
+                    <input type="number" id="title_to_trim_gap_inches" step="0.01" value="0.05">
                 </div>
             </div>
         </div>
