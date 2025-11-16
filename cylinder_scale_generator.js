@@ -246,7 +246,13 @@ function generatePreview() {
                 rowHeights.push(cumulative);
             }
             
-            const rowColors = ['#0000FF', '#FF0000', '#008000', '#800080', '#FFA500'];
+            const rowColors = [
+                params.row0_color || '#1a1a1a',
+                params.row1_color || '#8b0000',
+                params.row2_color || '#2f4f4f',
+                params.row3_color || '#4a4a4a',
+                params.row4_color || '#8b4513'
+            ];
             
             const autoFontSizePlotted = Math.min(clickSpacing * 72 * 0.8, 12);
             const baseFontSize = params.plotted_font_size_percent > 0 
@@ -458,7 +464,7 @@ function parseCSV(content) {
 function getAllParameters() {
     const params = {};
     
-    document.querySelectorAll('input[type="number"], input[type="text"], input[type="checkbox"]').forEach(input => {
+    document.querySelectorAll('input[type="number"], input[type="text"], input[type="checkbox"], input[type="color"]').forEach(input => {
         const id = input.id;
         if (id && id !== 'csv_file_input' && id !== 'csv_filename') {
             if (input.type === 'checkbox') {
@@ -727,12 +733,22 @@ function generatePDF() {
                 rowHeights.push(cumulative);
             }
             
+            // Helper function to convert hex color to RGB array
+            function hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? [
+                    parseInt(result[1], 16),
+                    parseInt(result[2], 16),
+                    parseInt(result[3], 16)
+                ] : [0, 0, 0];
+            }
+            
             const rowColors = [
-                [0, 0, 255],      // blue
-                [255, 0, 0],      // red
-                [0, 128, 0],      // green
-                [128, 0, 128],    // purple
-                [255, 165, 0]     // orange
+                hexToRgb(params.row0_color || '#1a1a1a'),
+                hexToRgb(params.row1_color || '#8b0000'),
+                hexToRgb(params.row2_color || '#2f4f4f'),
+                hexToRgb(params.row3_color || '#4a4a4a'),
+                hexToRgb(params.row4_color || '#8b4513')
             ];
             
             // Draw numbers
@@ -934,7 +950,7 @@ function resetToDefaults() {
     const defaults = {
         // Basic Settings
         cylinder_diameter_inches: 1.25,
-        tape_thickness_inches: 0.005,
+        tape_thickness_inches: 0.0095,
         max_label_height_inches: 0.75,
         num_clicks: 60,
         click_length_inches: 0.05,
@@ -945,18 +961,15 @@ function resetToDefaults() {
         // Click Marks
         medium_click_interval: 2,
         medium_click_start: 1,
-        medium_click_extra_length_inches: 0.06,
-        medium_click_width_inches: 0.02,
+        medium_click_extra_length_inches: 0.05,
+        medium_click_width_inches: 0.015,
         long_click_interval: 4,
         long_click_start: 3,
-        long_click_extra_length_inches: 0.12,
-        long_click_width_inches: 0.025,
+        long_click_extra_length_inches: 0.06,
+        long_click_width_inches: 0.02,
         reverse_numbering: false,
-        click_number_gap_inches: 0.03,
-        auto_font_size: true,
-        manual_font_size: 6,
-        font_vertical_offset_inches: 0.0,
-        start_number: 0,
+        click_number_gap_inches: 0,
+        font_size_override_percent: 130,
         
         // Plot Data
         enable_plotted_numbers: true,
@@ -973,20 +986,25 @@ function resetToDefaults() {
         indicator_dash_width: 0.5,
         indicator_dash_gap_inches: 0.01,
         plotted_font_size_percent: 200,
-        plotted_crowding_threshold_clicks: 3.0,
+        plotted_crowding_threshold_clicks: 3,
         plotted_crowding_font_reduction_percent: 90,
         
         // Appearance
         dark_mode: false,
+        row0_color: '#1a1a1a',
+        row1_color: '#8b0000',
+        row2_color: '#2f4f4f',
+        row3_color: '#4a4a4a',
+        row4_color: '#8b4513',
         enable_trim_marks: true,
         trim_mark_length_inches: 0.15,
         trim_mark_gap_inches: 0.03,
         trim_mark_width: 1,
         enable_title: true,
-        title_text: 'Cylinder Scale',
+        title_text: 'Wildcat, H&N Baracuda 21.1gr, 835fps zero @ 50yrds',
         title_font_size: 4,
         title_height_inches: 0.05,
-        title_to_trim_gap_inches: 0.02
+        title_to_trim_gap_inches: 0.05
     };
     
     // Reset all fields to defaults
@@ -1078,6 +1096,24 @@ window.addEventListener('load', function() {
             });
         } catch (e) {
             console.error('Error loading saved settings:', e);
+        }
+    }
+    
+    // Show mobile scroll hint
+    if (window.innerWidth <= 768) {
+        const hint = document.querySelector('.mobile-scroll-hint');
+        if (hint && !localStorage.getItem('hideTabScrollHint')) {
+            hint.style.display = 'block';
+            // Hide after first interaction or after 5 seconds
+            setTimeout(() => {
+                hint.style.display = 'none';
+            }, 5000);
+            
+            // Hide on first scroll
+            document.querySelector('.tabs').addEventListener('scroll', function() {
+                hint.style.display = 'none';
+                localStorage.setItem('hideTabScrollHint', 'true');
+            }, { once: true });
         }
     }
 });
