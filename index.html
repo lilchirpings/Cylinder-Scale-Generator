@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scale Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #e5e5e5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4a4a4a;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ccc;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        .tab.active {
+            background: white;
+            color: #333;
+            border-bottom: 3px solid #4a4a4a;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ccc;
+            font-weight: 600;
+        }
+
+        .field {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .field label {
+            color: #555;
+            font-weight: 500;
+        }
+
+        .field input[type="number"],
+        .field input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+
+        .field input[type="number"]:focus,
+        .field input[type="text"]:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .field input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .field input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .file-upload {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .file-upload input[type="text"] {
+            flex: 1;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4a4a4a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .btn-secondary {
+            background: #d0d0d0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #b8b8b8;
+        }
+        
+        #preview-btn {
+            min-width: 120px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            padding: 30px;
+            background: #f5f5f5;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            margin: 20px 30px;
+            display: none;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .csv-preview {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .field {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scale Generator</h1>
+            <p>Generate Trajectory Scale Label</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('basic')">Basic Settings</button>
+            <button class="tab" onclick="switchTab('clicks')">Click Index</button>
+            <button class="tab" onclick="switchTab('secondary')">Plot Data</button>
+            <button class="tab" onclick="switchTab('appearance')">Appearance</button>
+        </div>
+
+        <div id="basic" class="tab-content active">
+            <div class="form-group">
+                <h3>Cylinder Specifications</h3>
+                <div class="field">
+                    <label>Cylinder Diameter (inches):</label>
+                    <input type="number" id="cylinder_diameter_inches" step="0.01" value="1.25">
+                </div>
+                <div class="field">
+                    <label>Tape Thickness (inches):</label>
+                    <input type="number" id="tape_thickness_inches" step="0.001" value="0.005">
+                </div>
+                <div class="field">
+                    <label>Max Label Height (inches):</label>
+                    <input type="number" id="max_label_height_inches" step="0.01" value="0.75">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Basic Click Settings</h3>
+                <div class="field">
+                    <label>Number of Clicks:</label>
+                    <input type="number" id="num_clicks" value="60">
+                </div>
+                <div class="field">
+                    <label>Click Length (inches):</label>
+                    <input type="number" id="click_length_inches" step="0.01" value="0.25">
+                </div>
+                <div class="field">
+                    <label>Click Width (inches):</label>
+                    <input type="number" id="click_width_inches" step="0.01" value="0.02">
+                </div>
+                <div class="field">
+                    <label>Scale Line Width (inches):</label>
+                    <input type="number" id="scale_line_width_inches" step="0.01" value="0.03">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Output</h3>
+                <div class="field">
+                    <label>PDF Filename:</label>
+                    <input type="text" id="pdf_filename" value="cylinder_scale.pdf">
+                </div>
+            </div>
+        </div>
+
+        <div id="clicks" class="tab-content">
+            <div class="form-group">
+                <h3>Medium Click Marks</h3>
+                <div class="field">
+                    <label>Medium Click Interval:</label>
+                    <input type="number" id="medium_click_interval" value="2">
+                </div>
+                <div class="field">
+                    <label>Medium Click Start:</label>
+                    <input type="number" id="medium_click_start" value="2">
+                </div>
+                <div class="field">
+                    <label>Medium Extra Length (inches):</label>
+                    <input type="number" id="medium_click_extra_length_inches" step="0.01" value="0.15">
+                </div>
+                <div class="field">
+                    <label>Medium Click Width (inches):</label>
+                    <input type="number" id="medium_click_width_inches" step="0.001" value="0.02">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Long Click Marks (Numbered)</h3>
+                <div style="margin-bottom: 15px; padding: 10px; background: #e8f4f8; border-left: 3px solid #4a90e2; color: #555; font-size: 0.9em;">
+                    Long click marks are automatically labeled with scale numbers at the specified interval.
+                </div>
+                <div class="field">
+                    <label>Long Click Interval (numbered every N clicks):</label>
+                    <input type="number" id="long_click_interval" value="4">
+                </div>
+                <div class="field">
+                    <label>Long Click Start:</label>
+                    <input type="number" id="long_click_start" value="3">
+                </div>
+                <div class="field">
+                    <label>Long Extra Length (inches):</label>
+                    <input type="number" id="long_click_extra_length_inches" step="0.01" value="0.12">
+                </div>
+                <div class="field">
+                    <label>Long Click Width (inches):</label>
+                    <input type="number" id="long_click_width_inches" step="0.001" value="0.025">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Numbering</h3>
+                <div class="field">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="reverse_numbering">
+                        Reverse Numbering
+                    </label>
+                </div>
+                <div class="field">
+                    <label>Number Gap from Click (inches):</label>
+                    <input type="number" id="click_number_gap_inches" step="0.01" value="0.03">
+                </div>
+                <div class="field">
+                    <label>Font Size Override (%):</label>
+                    <input type="number" id="font_size_override_percent" value="130">
+                </div>
+                <div class="field">
+                    <label>Click Height Multiplier (%):</label>
+                    <input type="number" id="click_height_multiplier_percent" value="30">
+                </div>
+            </div>
+        </div>
+
+        <div id="secondary" class="tab-content">
+            <div class="form-group">
+                <h3>Plotted Numbers</h3>
+                <div class="field">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enable_plotted_numbers" checked>
+                        Enable Plotted Numbers
+                    </label>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+                        Data Input Method:
+                    </label>
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                        <label class="checkbox-label">
+                            <input type="radio" name="input_method" value="textarea" checked onchange="toggleInputMethod()">
+                            Direct Input (Type/Paste)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="input_method" value="file" onchange="toggleInputMethod()">
+                            Upload File
+                        </label>
+                    </div>
+                </div>
+
+                <div id="textarea_input" style="display: block;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #555;">
+                        Enter data (one entry per line):
+                    </label>
+                    <textarea id="csv_textarea" rows="10" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.9em; resize: vertical;">15.0	U6.8
+30.0	D9.8
+40.0	D6.9
+45.0	D3.9
+50.0	D0.0
+55.0	U4.6
+60.0	U8.7
+65.0	U14.1
+70.0	U19.9
+75.0	U24.8
+80.0	U31.1
+85.0	U36.4
+90.0	U43.3
+95.0-	U49.0
+100.0	U56.2
+105.0	U63.8
+110.0	U70.0
+115.0-	U77.9
+120.0	U84.4
+125.0-	U92.8
+130.0-	U99.7
+135.0	U108.5
+140.0	U117.5
+145.0	U124.9
+150.0	U134.3
+155.0	U142.0
+160.0	U151.9
+165.0	U160.0
+170.0	U170.4
+175.0	U181.0
+180.0	U189.6
+185.0	U200.7
+190.0	U209.8
+195.0	U221.4</textarea>
+                    <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
+                        Format: number [tab or space] position (e.g., "15.0  U6.8" or "95.0-  U49.0")
+                    </div>
+                </div>
+
+                <div id="file_input" style="display: none;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #555;">
+                        Upload CSV/TSV file:
+                    </label>
+                    <div class="file-upload">
+                        <input type="text" id="csv_filename" value="No file selected" readonly>
+                        <label for="csv_file_input" class="btn btn-secondary">Browse</label>
+                        <input type="file" id="csv_file_input" accept=".csv,.txt,.tsv" onchange="handleFileUpload(event)">
+                    </div>
+                    <div id="csv_preview_container"></div>
+                </div>
+
+                <div class="field">
+                    <label>Zero Reference Click:</label>
+                    <input type="number" id="zero_reference_click" value="12">
+                </div>
+                <div class="field">
+                    <label>Usable Scale Start Click:</label>
+                    <input type="number" id="usable_scale_start_click" value="2">
+                </div>
+                <div class="field">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="round_click_positions">
+                        Round Click Positions
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Row Spacing (inches)</h3>
+                <div class="field">
+                    <label>Row 0 Gap (scale to first row):</label>
+                    <input type="number" id="plotted_row0_height_inches" step="0.01" value="0.08">
+                </div>
+                <div class="field">
+                    <label>Row 1 Gap (row 0 to row 1):</label>
+                    <input type="number" id="plotted_row1_height_inches" step="0.01" value="0.095">
+                </div>
+                <div class="field">
+                    <label>Row 2 Gap (row 1 to row 2):</label>
+                    <input type="number" id="plotted_row2_height_inches" step="0.01" value="0.095">
+                </div>
+                <div class="field">
+                    <label>Row 3 Gap (row 2 to row 3):</label>
+                    <input type="number" id="plotted_row3_height_inches" step="0.01" value="0.095">
+                </div>
+                <div class="field">
+                    <label>Row 4 Gap (row 3 to row 4):</label>
+                    <input type="number" id="plotted_row4_height_inches" step="0.01" value="0.095">
+                </div>
+                <div class="field">
+                    <label>Stacked Spacing:</label>
+                    <input type="number" id="plotted_stacked_spacing_inches" step="0.01" value="0.06">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Indicator Dashes</h3>
+                <div class="field">
+                    <label>Dash Length (inches):</label>
+                    <input type="number" id="indicator_dash_length_inches" step="0.01" value="0.02">
+                </div>
+                <div class="field">
+                    <label>Dash Width:</label>
+                    <input type="number" id="indicator_dash_width" step="0.1" value="0.5">
+                </div>
+                <div class="field">
+                    <label>Dash Gap (inches):</label>
+                    <input type="number" id="indicator_dash_gap_inches" step="0.01" value="0.01">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Font Settings</h3>
+                <div class="field">
+                    <label>Font Size (%):</label>
+                    <input type="number" id="plotted_font_size_percent" value="200">
+                </div>
+                <div class="field">
+                    <label>Crowding Threshold (clicks):</label>
+                    <input type="number" id="plotted_crowding_threshold_clicks" step="0.1" value="3.0">
+                </div>
+                <div class="field">
+                    <label>Crowding Font Reduction (%):</label>
+                    <input type="number" id="plotted_crowding_font_reduction_percent" value="90">
+                </div>
+            </div>
+        </div>
+
+        <div id="appearance" class="tab-content">
+            <div class="form-group">
+                <h3>Color Theme</h3>
+                <div class="field">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="dark_mode">
+                        Dark Mode
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Trim Marks</h3>
+                <div class="field">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enable_trim_marks" checked>
+                        Enable Trim Marks
+                    </label>
+                </div>
+                <div class="field">
+                    <label>Trim Mark Length (inches):</label>
+                    <input type="number" id="trim_mark_length_inches" step="0.01" value="0.15">
+                </div>
+                <div class="field">
+                    <label>Trim Mark Gap (inches):</label>
+                    <input type="number" id="trim_mark_gap_inches" step="0.01" value="0.03">
+                </div>
+                <div class="field">
+                    <label>Trim Mark Width:</label>
+                    <input type="number" id="trim_mark_width" value="1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Title</h3>
+                <div class="field">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enable_title" checked>
+                        Enable Title
+                    </label>
+                </div>
+                <div class="field">
+                    <label>Title Text:</label>
+                    <input type="text" id="title_text" value="Cylinder Scale">
+                </div>
+                <div class="field">
+                    <label>Title Font Size:</label>
+                    <input type="number" id="title_font_size" value="4">
+                </div>
+                <div class="field">
+                    <label>Title Height (inches):</label>
+                    <input type="number" id="title_height_inches" step="0.01" value="0.05">
+                </div>
+                <div class="field">
+                    <label>Title to Trim Gap (inches):</label>
+                    <input type="number" id="title_to_trim_gap_inches" step="0.01" value="0.02">
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="preview-btn" class="btn btn-primary" onclick="generatePreview()">Preview Scale</button>
+            <button class="btn btn-primary" onclick="generatePDF()">Generate PDF</button>
+            <button class="btn btn-secondary" onclick="saveSettings()">Save Settings</button>
+            <button class="btn btn-secondary" onclick="loadSettings()">Load Settings</button>
+            <button class="btn btn-secondary" onclick="resetToDefaults()">Reset to Defaults</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div id="preview-section" style="display: none; margin: 20px; padding: 20px; background: #f5f5f5; border-radius: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: #333;">Scale Preview</h3>
+                <button class="btn btn-secondary" onclick="closePreview()">Close Preview</button>
+            </div>
+            <div style="background: white; padding: 15px; border: 1px solid #ccc; border-radius: 4px; overflow: auto; max-height: 600px;">
+                <canvas id="preview-canvas" style="display: block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></canvas>
+            </div>
+            <div style="margin-top: 10px; text-align: center; color: #666; font-size: 0.9em;">
+                Note: This is a scaled preview. Actual PDF will be at 100% size for printing.
+            </div>
+        </div>
+    </div>
+
+    <script src="cylinder_scale_generator.js"></script>
+</body>
+</html>
